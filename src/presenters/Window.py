@@ -15,18 +15,22 @@ class Window(IWindow):
 
         win = self.stdscr
         win.bkgd(' ', curses.color_pair(1))
-       
+
         high, width = win.getmaxyx()
-    
+
         # derwin(nlines, ncols, begin_y, begin_x)
-        barra = win.derwin(1, width,0, 0)
-        barra.bkgd(' ', curses.color_pair(3))
-        #barra.clear()
-        barra.addstr(0, 0, "BARRA DE TAREAS",curses.color_pair(3))
-        
-        barra.refresh()  
-        win.move(1,0)         
+        task_bar = win.derwin(1, width,0, 0)
+        task_bar.bkgd(' ', curses.color_pair(3))
+        task_bar.addstr(0, 0, "BARRA DE TAREAS",curses.color_pair(3))
+        task_bar.refresh()
+
+        # derwin(nlines, ncols, begin_y, begin_x)
+        foot_bar = win.derwin(1, width, high-1, 0)
+        foot_bar.bkgd(' ', curses.color_pair(3))
+        foot_bar.addstr(0, 0, "Footer",curses.color_pair(3))
+        foot_bar.refresh()
+
+        win.move(1,0)
         document = ""
         self.doc_handler.write_character()
 
-    
