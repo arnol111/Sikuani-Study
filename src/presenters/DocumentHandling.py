@@ -1,6 +1,6 @@
+import logging
 from io import BufferedIOBase
 import os
-
 from src.interfaces import IDocumentHandling
 import curses
 
@@ -14,38 +14,43 @@ class DocumentHandling(IDocumentHandling):
         self.file_document: BufferedIOBase | None = None
         if file_path:
             self.load_document(file_path)
+        #logging.basicConfig(filename="/tmp/debug.log", level=logging.DEBUG)
 
     def write_character(self):
-
         k = 0
-        self.start_y = 1
+        self.array_text = [""]
+        self.start_y = 0
         self.start_x = 0
-        actual_row = ""
-
         if self.file_document:
             self.array_text = self.file_document.readlines()
 
         while k != ord("q"):
-            k = self.win.getch()
 
+            k = self.win.getch()
             if k != 0:
-                height, width = self.win.getmaxyx()
                 pressedKey = chr(k)
 
+                #logging.debug(f"star_y={self.start_y} star_x={self.start_x} and k={k}")
+
                 if 32 <= k <= 126:
-                    self.win.attron(curses.color_pair(2))
-                    self.win.addstr(self.start_y, self.start_x, pressedKey)
-                    actual_row += pressedKey
+                    row = self.array_text[self.start_y]
+                    row = row[: self.start_x] + pressedKey + row[self.start_x :]
+                    self.array_text[self.start_y] = row
+                    self.win.addstr(self.start_y, self.start_x, pressedKey, curses.color_pair(2))
                     self.start_x += 1
                     self.win.move(self.start_y, self.start_x)
 
-                if k == 10 or k == ord("\n"):
+                elif k == 10 or k == ord("\n"):
+                    row = self.array_text[self.start_y]
+                    before = row[: self.start_x]
+                    after = row[self.start_x :]
+                    self.array_text[self.start_y] = before
+                    self.array_text.insert(self.start_y + 1, after)
                     self.start_y += 1
                     self.start_x = 0
-                    self.array_text.append(actual_row)
                     self.win.move(self.start_y, self.start_x)
 
-                elif k == curses.KEY_BACKSPACE:
+                elif k == curses.KEY_BACKSPACE or k == 127:
                     self.remove_character()
 
             self.win.refresh()
@@ -58,33 +63,29 @@ class DocumentHandling(IDocumentHandling):
                 0 if nothing was removed.
         """
         if self.start_x > 0:
+            row = self.array_text[self.start_y]
+            self.array_text[self.start_y] = (row[: self.start_x - 1] + row[self.start_x :])
             self.start_x -= 1
             self.win.delch(self.start_y, self.start_x)
             return 1
 
-
-        # Todo : Fix the error when remove a line
-        if self.start_x == 0:
-            if self.start_y > 1:
-                self.start_y -= 1
-                self.win.delch(self.start_y, self.start_x)
-                self.start_x = len(self.array_text[self.start_y-1].strip())
-                self.win.move(self.start_y, self.start_x)
-                return -1
-
-            else:
-                self.win.delch(self.start_y, self.start_x)
-                return 1
+        if self.start_x == 0 and self.start_y > 0:
+            prev = self.array_text[self.start_y - 1]
+            last_location = len(prev.strip())
+            self.win.deleteln()
+            self.win.refresh()
+            self.start_y -= 1
+            self.start_x = last_location
+            self.win.move(self.start_y, self.start_x)
+            return -1
         return 0
 
     def save_document(self, document):
         pass
 
     def load_document(self, file_path: str):
-
         if not os.path.exists(file_path):
             raise FileNotFoundError(f"The file {file_path} is missing!")
-
         self.file_document = open(file_path, "w+b", encoding="utf-8")
 
     def insert_text(self, document):
