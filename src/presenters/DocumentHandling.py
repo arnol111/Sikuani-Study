@@ -1,22 +1,27 @@
 import logging
 from io import BufferedIOBase
 import os
+from models import DocumentText
 from src.interfaces import IDocumentHandling
 import curses
 
+from views import ContainerView
+
 
 class DocumentHandling(IDocumentHandling):
-    def __init__(self, win, file_path: str):
+    def __init__(self, document: DocumentText, view: ContainerView):
+        self.document = document
+        self.win = ContainerView
         self.start_y = 0
         self.start_x = 0
-        self.win = win
         self.array_text = []
         self.file_document: BufferedIOBase | None = None
         if file_path:
             self.load_document(file_path)
-        #logging.basicConfig(filename="/tmp/debug.log", level=logging.DEBUG)
+        # logging.basicConfig(filename="/tmp/debug.log", level=logging.DEBUG)
 
-    def write_character(self):
+    def start(self):
+        self.view
         k = 0
         self.array_text = [""]
         self.start_y = 0
@@ -25,13 +30,29 @@ class DocumentHandling(IDocumentHandling):
             self.array_text = self.file_document.readlines()
 
         while k != ord("q"):
-
+            
+            high, width = self.win.getmaxyx()
+            
             k = self.win.getch()
             if k != 0:
                 pressedKey = chr(k)
 
-                #logging.debug(f"star_y={self.start_y} star_x={self.start_x} and k={k}")
+                # logging.debug(f"star_y={self.start_y} star_x={self.start_x} and k={k}")
 
+                if k == curses.KEY_LEFT:
+                    if self.star_x > 0:
+                        self.star_x -= 1
+                if k == curses.KEY_RIGHT:
+                    if self.start_y < width:
+                        self.start_y += 1
+                if k == curses.KEY_UP:
+                    if self.start_y > 0:
+                        self.start_y -= 1
+                if k == curses.KEY_DOWN:
+                    if self.start_y < high:
+                        self.start_y += 1
+                        
+                
                 if 32 <= k <= 126:
                     row = self.array_text[self.start_y]
                     row = row[: self.start_x] + pressedKey + row[self.start_x :]
@@ -64,7 +85,9 @@ class DocumentHandling(IDocumentHandling):
         """
         if self.start_x > 0:
             row = self.array_text[self.start_y]
-            self.array_text[self.start_y] = (row[: self.start_x - 1] + row[self.start_x :])
+            self.array_text[self.start_y] = (
+                row[: self.start_x - 1] + row[self.start_x :]
+            )
             self.start_x -= 1
             self.win.delch(self.start_y, self.start_x)
             return 1
