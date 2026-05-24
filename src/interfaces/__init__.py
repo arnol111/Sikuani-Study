@@ -1,2 +1,4 @@
 from src.interfaces.IDocumentHandling import IDocumentHandling
 from src.interfaces.IWindow import IWindow
+from src.interfaces.IDocHandlingPresenter import IDocHandlingPresenter
+from src.interfaces.IContentView import IContentView

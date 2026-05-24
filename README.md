@@ -1,48 +1,60 @@
 # Sikuani Study
 
-Editor de texto en terminal (TUI) construido con Python y `curses`. Proyecto de estudio para explorar arquitectura limpia con interfaces, presenters y modelos en aplicaciones de consola.
+A terminal text editor (TUI) built with Python and `curses`. A study project to explore the **Model-View-Presenter (MVP)** pattern in pure Python console applications.
 
-## Descripcion
+## Description
 
-Sikuani Study es una aplicacion de terminal que permite escribir y editar texto directamente en la consola usando una interfaz visual basada en colores y una barra de tareas. El objetivo principal es aprender y practicar el patron de diseño presenter/interface/model en Python puro.
+Sikuani Study is a **learning project under active construction**. It is a terminal application that allows writing and editing text directly in the console using a color-based visual interface with a title bar and footer. The main goal is to learn and practice clean architecture principles — specifically the MVP pattern — with clearly separated layers, abstract interfaces, and dependency injection. Expect breaking changes and incomplete features as the project evolves.
 
-## Arquitectura
+## Architecture
 
 ```
 src/
-├── interfaces/          # Contratos abstractos (ABC)
-│   ├── IDocumentHandling.py
-│   └── IWindow.py
-├── presenters/          # Implementaciones concretas
-│   ├── DocumentHandling.py
-│   └── Window.py
-├── models/
-│   └── services/        # Logica de negocio (en construccion)
-└── views/               # Vistas (en construccion)
+├── interfaces/               # Abstract contracts (ABC)
+│   ├── IWindow.py
+│   ├── IContentView.py
+│   ├── IDocHandlingPresenter.py
+│   └── IDocumentHandling.py
+├── models/                   # Pure state and business logic — no curses
+│   ├── FileDocument.py       # Document state: lines, cursor position
+│   ├── KeyMapper.py          # Domain key enum (EditorKey) and KeyEvent
+│   └── services/
+│       └── DocumentServices.py  # File I/O (load/save)
+├── views/                    # Rendering and input capture — only layer that knows curses
+│   ├── ContentView.py        # Translates curses input → KeyEvent, renders text
+│   ├── FooterView.py         # Footer bar
+│   └── TittleBarView.py      # Title bar
+└── presenters/               # Coordination — no curses, no direct rendering
+    ├── Window.py             # Builds layout, assembles dependencies
+    └── Doc_HandlingPresenter.py  # Handles editing logic, drives Model and View
 ```
 
-El proyecto sigue un patron **Interfaz → Presenter**:
+### MVP Layer Responsibilities
 
-- `IDocumentHandling` / `IWindow` definen los contratos
-- `DocumentHandling` maneja la escritura, borrado, carga y guardado de documentos
-- `Window` orquesta la UI: inicializa colores, barra de tareas y delega el input al handler
+| Layer | Knows curses | Knows disk | Contains logic |
+|---|---|---|---|
+| `FileDocument` | No | No | State only |
+| `DocumentServices` | No | Yes | No |
+| `ContentView` | Yes — translates to `KeyEvent` | No | No |
+| `Doc_HandlingPresenter` | No | No | Yes — coordinates |
+| `Window` | Yes — layout only | No | No |
 
-## Requisitos
+## Requirements
 
-- Python 3.x
-- Terminal con soporte de colores
+- Python 3.11+
+- Terminal with color support
 
-## Uso
+## Usage
 
 ```bash
-python app.py
+python3 app.py
 ```
 
-- Escribi texto normalmente (caracteres imprimibles ASCII)
-- `Enter` para nueva linea
-- `Backspace` para borrar
-- `q` para salir
+- Type printable ASCII characters to write
+- `Enter` to insert a new line
+- `Backspace` to delete a character
+- `q` to quit
 
-## Estado
+## Status
 
-Proyecto en desarrollo activo. Las capas `models/services` y `views` estan pendientes de implementacion.
+Active development. Core MVP structure is in place. Editing features (cursor movement, file load/save) are under active implementation.

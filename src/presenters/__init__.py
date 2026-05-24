@@ -1,2 +1,3 @@
 from src.presenters.Window import Window
 from src.presenters.DocumentHandling import DocumentHandling
+from src.presenters.Doc_HandlingPresenter import Doc_HandlingPresenter
