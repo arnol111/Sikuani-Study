@@ -1,52 +1,40 @@
 import curses
-from src.interfaces import IDocumentHandling
+from src.presenters.Doc_HandlingPresenter import Doc_HandlingPresenter
+from src.models.services import DocumentServices
 from src.interfaces import IWindow
-
-##interfaces.IDocumentHandling import IDocumentHandling  # ✅
-
+from src.views import FooterView, TittleBarView, ContentView
 
 class Window(IWindow):
 
-    def __init__(self, stdscr, doc_handler: IDocumentHandling):
+    def __init__(self, stdscr, file_path: str = ""):
         self.stdscr = stdscr
-        self.doc_handler = doc_handler
-        self.footer = None
-        self.title_bar = None
+        self.file_path = file_path
 
     def start(self):
-        self.styles()
+        self.__styles()
         win = self.stdscr
-        win.bkgd(' ', curses.color_pair(1))
+        win.bkgd(" ", curses.color_pair(1))
         high, width = win.getmaxyx()
 
         # Layout Windows
-        self.title_bar = curses.newwin(1, width,0,0)
-        self.content = curses.newwin(high-2, width,1,0)
-        self.footer = curses.newwin(1,width,high-1,0)
+        title_bar = curses.newwin(1, width, 0, 0)
+        content = curses.newwin(high - 2, width, 1, 0)
+        footer = curses.newwin(1, width, high - 1, 0)
 
-        self._draw_title_bar()
-        self._draw_footer()
-        self.content.refresh()
+        # Validar depenencias de inyecciones
+        FooterView(footer)
+        TittleBarView(title_bar)
 
-        self.doc_handler.win = self.content
-
-        #win.move(1,0)
-        self.doc_handler.write_character()
-
-    def _draw_title_bar(self):
-        self.title_bar.bkgd(' ', curses.color_pair(3))
-        self.title_bar.addstr(0, 0, "Title Bar", curses.color_pair(3))
-        self.title_bar.refresh()
-
-    def _draw_footer(self):
-        self.footer.bkgd(' ', curses.color_pair(3))
-        self.footer.addstr(0, 0, "Footer", curses.color_pair(2))
-        self.footer.refresh()
-
-    def refresh_footer(self):
-        self._draw_footer()
-
-    def styles(self):
+        # Modelo
+        service = DocumentServices()
+        document = service.load(self.file_path) 
+        
+        content.keypad(True)
+        content.refresh()
+        doc_handling_presenter =  Doc_HandlingPresenter(document, ContentView(content))
+        doc_handling_presenter.start()
+        
+    def __styles(self):
         curses.start_color()
         curses.use_default_colors()  # ← esto es clave en muchas terminales
 

@@ -6,14 +6,11 @@ import curses
 
 
 class DocumentHandling(IDocumentHandling):
-    def __init__(self, win, file_path: str):
+    def __init__(self, win):
         self.start_y = 0
         self.start_x = 0
         self.win = win
         self.array_text = []
-        self.file_document: BufferedIOBase | None = None
-        if file_path:
-            self.load_document(file_path)
         #logging.basicConfig(filename="/tmp/debug.log", level=logging.DEBUG)
 
     def write_character(self):
@@ -79,14 +76,6 @@ class DocumentHandling(IDocumentHandling):
             self.win.move(self.start_y, self.start_x)
             return -1
         return 0
-
-    def save_document(self, document):
-        pass
-
-    def load_document(self, file_path: str):
-        if not os.path.exists(file_path):
-            raise FileNotFoundError(f"The file {file_path} is missing!")
-        self.file_document = open(file_path, "w+b", encoding="utf-8")
 
     def insert_text(self, document):
         pass
