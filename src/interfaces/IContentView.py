@@ -19,3 +19,11 @@ class IContentView(ABC):
     @abstractmethod
     def render_remove_ch(self, pos_y: int, pos_x: int) -> None:
         pass
+
+    @abstractmethod
+    def prompt_file_path(self, message: str) -> str:
+        pass
+
+    @abstractmethod
+    def render_status(self, message: str) -> None:
+        pass
